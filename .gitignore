@@ -1,0 +1,25 @@
+# Python virtual environments
+.venv/
+venv/
+env/
+
+# Python cache artifacts
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Checkpoints and models
+experiments/results/*.pt
+experiments/results/*.pth
+*.pt
+*.pth
+
+# Processed datasets (large binary files)
+data/processed/*.npz
+
+# System & IDE artifacts
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
