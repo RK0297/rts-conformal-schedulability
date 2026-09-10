@@ -1,0 +1,24 @@
+# Schedulability Analysis Hyperparameters
+training:
+  batch_size: 1000
+  learning_rate: 0.001
+  weight_decay: 0.0001
+  max_epochs: 100
+  early_stopping_patience: 10
+  seed: 42
+
+regression_model:
+  hidden_layers: 4
+  hidden_nodes: 30
+  activation: "relu"
+  asymmetric_penalty_w: 100.0  # Optimal penalty weight from Baruah et al.
+
+binary_model:
+  hidden_layers: 2
+  hidden_nodes: 15
+  activation: "relu"
+  output_activation: "sigmoid"
+
+conformal_prediction:
+  significance_levels: [0.01, 0.05, 0.10, 0.20]
+  default_alpha: 0.10
