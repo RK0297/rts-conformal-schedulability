@@ -1,29 +1,84 @@
-"""Evaluation Metrics for Learning-Assisted Real-Time Schedulability Analysis."""
+"""Evaluation metrics for Real-Time Schedulability Analysis.
+
+Distinguishes between:
+1. Safety False Positive Rate (FPR): unschedulable systems certified as schedulable (MUST BE 0.000%)
+2. Operational False Rejection Rate (FRR): schedulable systems rejected by conservative certificate failure
+"""
+from dataclasses import dataclass
 from typing import Dict, List, Optional
 import numpy as np
 
-def compute_schedulability_metrics(
+
+@dataclass
+class SchedulabilityMetrics:
+    total_samples: int
+    true_schedulable: int
+    true_unschedulable: int
+    tp: int
+    fp: int  # Safety false positives
+    tn: int
+    fn: int  # Operational false rejections
+
+    predictive_accuracy: float
+    acceptance_rate: float  # Sensitivity / TPR: TP / (TP + FN)
+    safety_fpr: float       # FP / (FP + TN)
+    operational_frr: float  # FN / (TP + FN)
+
+    conformal_coverage: Optional[float] = None
+    uncertainty_rate: Optional[float] = None
+
+
+def compute_metrics(
     y_true: np.ndarray,
-    y_pred: np.ndarray,
-    is_verified: Optional[np.ndarray] = None,
-) -> Dict[str, float]:
-    y_true = np.asarray(y_true, dtype=bool)
-    y_pred = np.asarray(y_pred, dtype=bool)
-    n_total = len(y_true)
+    is_certified: np.ndarray,
+    prediction_sets: Optional[List[set]] = None,
+) -> SchedulabilityMetrics:
+    """Computes safety and performance metrics."""
+    N = len(y_true)
+    y_t = np.array(y_true, dtype=int)
+    cert = np.array(is_certified, dtype=bool)
 
-    tp = np.sum(y_true & y_pred)
-    tn = np.sum(~y_true & ~y_pred)
-    fp = np.sum(~y_true & y_pred)
-    fn = np.sum(y_true & ~y_pred)
+    n_sched = int(np.sum(y_t == 1))
+    n_unsched = int(np.sum(y_t == 0))
 
-    accuracy = (tp + tn) / n_total if n_total > 0 else 0.0
-    tpr = tp / np.sum(y_true) if np.sum(y_true) > 0 else 0.0
-    fpr = fp / np.sum(~y_true) if np.sum(~y_true) > 0 else 0.0
-    frr = fn / np.sum(y_true) if np.sum(y_true) > 0 else 0.0
+    tp = int(np.sum((y_t == 1) & cert))
+    fp = int(np.sum((y_t == 0) & cert))
+    tn = int(np.sum((y_t == 0) & (~cert)))
+    fn = int(np.sum((y_t == 1) & (~cert)))
 
-    return {
-        "accuracy": accuracy,
-        "acceptance_rate_tpr": tpr,
-        "safety_fpr": fpr,
-        "operational_frr": frr,
-    }
+    accuracy = (tp + tn) / max(1, N)
+    acceptance = tp / max(1, n_sched) if n_sched > 0 else 0.0
+    safety_fpr = fp / max(1, n_unsched) if n_unsched > 0 else 0.0
+    operational_frr = fn / max(1, n_sched) if n_sched > 0 else 0.0
+
+    conformal_coverage = None
+    uncertainty_rate = None
+
+    if prediction_sets is not None:
+        covered = 0
+        uncertain = 0
+        for idx, p_set in enumerate(prediction_sets):
+            label = "Schedulable" if y_t[idx] == 1 else "Unschedulable"
+            if label in p_set:
+                covered += 1
+            if len(p_set) > 1:
+                uncertain += 1
+
+        conformal_coverage = covered / max(1, N)
+        uncertainty_rate = uncertain / max(1, N)
+
+    return SchedulabilityMetrics(
+        total_samples=N,
+        true_schedulable=n_sched,
+        true_unschedulable=n_unsched,
+        tp=tp,
+        fp=fp,
+        tn=tn,
+        fn=fn,
+        predictive_accuracy=accuracy,
+        acceptance_rate=acceptance,
+        safety_fpr=safety_fpr,
+        operational_frr=operational_frr,
+        conformal_coverage=conformal_coverage,
+        uncertainty_rate=uncertainty_rate,
+    )
