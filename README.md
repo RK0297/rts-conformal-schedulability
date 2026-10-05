@@ -32,67 +32,52 @@ The baseline certificate mechanism is strictly one-sided: if the neural model ma
 
 ### Our Solution: Conformal Prediction Layer
 We incorporate a Split Conformal Prediction wrapper that outputs rigorous **prediction sets** instead of binary decisions:
-$$\mathcal{C}(x) \in \Big\{ \{\text{Schedulable}\}, \{\text{Unschedulable}\}, \{\text{Schedulable, Unschedulable}\} \Big\}$$
+$$\mathcal{C}(x) \in \left\{ \{\text{Schedulable}\},\; \{\text{Unschedulable}\},\; \{\text{Schedulable}, \text{Unschedulable}\} \right\}$$
 Given a user-specified significance level $\alpha \in (0, 1)$, the CP layer guarantees marginal coverage:
-$$P\big(Y \in \mathcal{C}(X)\big) \ge 1 - \alpha$$
-Task sets flagged as $\{\text{Schedulable, Unschedulable}\}$ (Uncertain) are escalated to fallback exact RTA rather than discarded, preventing false rejections while maintaining zero unsafe admissions.
+$$P(Y \in \mathcal{C}(X)) \ge 1 - \alpha$$
+Task sets flagged as $\{\text{Schedulable}, \text{Unschedulable}\}$ (Uncertain) are escalated to fallback exact RTA rather than discarded, preventing false rejections while maintaining zero unsafe admissions.
 
 ---
 
 ## 3. Architecture: Baseline vs. CP-Augmented Approach
 
 ### Baseline Architecture (Baruah et al., 2025)
-```
-[Task Set Input: (C, D, T)]
-            |
-            v
-[Regression Neural Network (MLP)]
-            |
-            v Predicted Candidate Response Times R'_i
-[Polynomial RTA Verifier: R'_i >= f(R'_i) and R'_i <= D_i]
-            |
-   +--------+--------+
-   |                 |
-Passed             Failed
-   |                 |
-   v                 v
-[VERIFIED         [REJECTED]
- SCHEDULABLE]     (High Operational FRR)
- (Zero FP)
+
+```mermaid
+flowchart TD
+    A["Task Set Input: (C, D, T)"] --> B["Regression Neural Network (MLP)"]
+    B -->|"Candidate Response Times R'_i"| C{"Polynomial RTA Verifier: R'_i >= f(R'_i) & R'_i <= D_i"}
+    C -->|"Passed (Certified)"| D["VERIFIED SCHEDULABLE (Safety FPR = 0.0000%)"]
+    C -->|"Failed"| E["REJECTED (High Operational FRR)"]
+
+    style A fill:#f8f9fa,stroke:#495057,stroke-width:1px
+    style B fill:#e3f2fd,stroke:#1e88e5,stroke-width:1px
+    style C fill:#fff3e0,stroke:#fb8c00,stroke-width:1px
+    style D fill:#e8f5e9,stroke:#43a047,stroke-width:2px
+    style E fill:#ffebee,stroke:#e53935,stroke-width:1px
 ```
 
 ### Our CP-Augmented Architecture
-```
-[Task Set Input: (C, D, T)]
-            |
-            v
-[Joint Neural Network (Regression + Classification)]
-            |
-     +------+------+
-     |             |
-Predicted R'_i   Probability p_hat(Sched | x)
-     |             |
-     |             v
-     |      [Conformal Prediction Layer]
-     |      Non-conformity: S = 1 - p_hat
-     |      Quantile q_hat at significance alpha
-     |             |
-     |      +------+--------------------------+
-     |      |                                 |
-     |      v Prediction Set                  v Prediction Set
-     |   {Unschedulable}           {Sched} or {Sched, Unsched}
-     |   [FAST REJECT]                        |
-     |                                        v
-     +-----------------------> [Polynomial RTA Verifier]
-                                              |
-                                     +--------+--------+
-                                     |                 |
-                                  Passed             Failed
-                                     |                 |
-                                     v                 v
-                              [VERIFIED         [UNCERTAIN / FALLBACK]
-                               SCHEDULABLE]     (Escalate to Exact RTA)
-                               (Safety FPR=0)   (Avoids False Rejection)
+
+```mermaid
+flowchart TD
+    In["Task Set Input: (C, D, T)"] --> Model["Joint Neural Network (Regression + Classification)"]
+    Model -->|"Predicted Response Times R'_i"| Verifier{"Polynomial RTA Verifier"}
+    Model -->|"Probability p_hat(Sched | x)"| CP["Conformal Prediction Layer (Significance alpha)"]
+    
+    CP -->|"Set: {Unschedulable}"| FastReject["FAST REJECT (High-Confidence Unschedulable)"]
+    CP -->|"Set: {Sched} or {Sched, Unsched}"| Verifier
+    
+    Verifier -->|"Passed (Certified)"| SafeAccept["VERIFIED SCHEDULABLE (Safety FPR = 0.0000%)"]
+    Verifier -->|"Failed (Uncertain)"| Fallback["UNCERTAIN / FALLBACK (Escalate to Exact RTA)"]
+
+    style In fill:#f8f9fa,stroke:#495057,stroke-width:1px
+    style Model fill:#e3f2fd,stroke:#1e88e5,stroke-width:1px
+    style CP fill:#ede7f6,stroke:#5e35b1,stroke-width:1px
+    style Verifier fill:#fff3e0,stroke:#fb8c00,stroke-width:1px
+    style FastReject fill:#ffebee,stroke:#e53935,stroke-width:1px
+    style SafeAccept fill:#e8f5e9,stroke:#43a047,stroke-width:2px
+    style Fallback fill:#fff8e1,stroke:#fbc02d,stroke-width:1px
 ```
 
 ---
