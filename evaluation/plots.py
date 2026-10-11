@@ -1,7 +1,7 @@
 """Scientific visualization routines for Learning-Assisted RTS Schedulability Analysis.
 
 Replicates core figures from Baruah et al. (2025) and generates Conformal Prediction
-calibration diagnostics for the 70% presentation milestone.
+calibration diagnostics for RTS schedulability benchmarks.
 """
 from pathlib import Path
 from typing import List, Optional

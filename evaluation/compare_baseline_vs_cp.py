@@ -1,8 +1,7 @@
 """Comprehensive comparative evaluation: Unverified DL vs Verified Baseline vs Conformal Prediction.
 
 Evaluates test performance, computes safety FPR and operational FRR,
-generates per-utilization sweeps, and exports publication-ready CSVs and plots
-for the 70% presentation milestone.
+for rigorous schedulability benchmark.
 """
 import argparse
 from pathlib import Path

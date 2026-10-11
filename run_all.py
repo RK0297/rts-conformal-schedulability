@@ -1,4 +1,4 @@
-"""One-click automated runner for n=10 and n=15 (70% Presentation Milestone)."""
+"""One-click automated runner for n=10 and n=15 benchmark evaluation."""
 import subprocess
 import sys
 
@@ -61,20 +61,12 @@ def main():
     run("uv run python evaluation/evaluate_weight_sensitivity.py")
 
     # -------------------------------------------------
-    # 6. Evaluation sweeps & 2 master presentation figures
+    # 6. Evaluation figures
     # -------------------------------------------------
-    run("uv run python evaluation/compare_baseline_vs_cp.py "
-        "--data data/processed/tasksets_n10_uniform.npz "
-        "--checkpoint experiments/results/joint_n10.pt")
-
-    run("uv run python evaluation/compare_baseline_vs_cp.py "
-        "--data data/processed/tasksets_n15_uniform.npz "
-        "--checkpoint experiments/results/joint_n15.pt")
-
-    run("uv run python evaluation/generate_presentation_figures.py")
+    run("uv run python evaluation/generate_paper_figures.py")
 
     print("\n" + "="*70)
-    print("PIPELINE RUN COMPLETE FOR N=10 AND N=15 (70% MILESTONE READY)")
+    print("PIPELINE RUN COMPLETE FOR N=10 AND N=15 EVALUATION")
     print("="*70)
 
 if __name__ == "__main__":

@@ -7,7 +7,7 @@ Implements the workload synthesis protocol from Baruah et al. (2025):
 - Deadlines D_i uniformly sampled in [C_i, T_i]
 - Deadline-Monotonic (DM) priority sorting (ascending D_i)
 - Ground-truth RTA labeling via exact Joseph & Pandya recurrence
-- Partitions data into 70% Train, 15% Calibration, 15% Test
+- Partitions data into Train, Calibration, and Test splits
 """
 import argparse
 import sys
@@ -167,7 +167,7 @@ def split_and_save(
     tag: str = "uniform",
     seed: int = 12345,
 ):
-    """Splits into 70% Train, 15% Calibration, 15% Test and exports compressed npz."""
+    """Splits into Train, Calibration, and Test partitions and exports compressed npz."""
     n_samples = len(data["Y_bin"])
     rng = np.random.default_rng(seed)
     indices = rng.permutation(n_samples)
