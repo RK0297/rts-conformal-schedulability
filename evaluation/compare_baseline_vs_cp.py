@@ -49,10 +49,10 @@ def run_comparison(
     X_reg_test = data["test_X_reg"]
     X_clf_test = data["test_X_bin"]
     y_test = data["test_Y_bin"]
-    C_test = data["test_C"]
-    D_test = data["test_D"]
-    T_test = data["test_T"]
-    U_test = data["test_U"]
+    C_test = data["test_C"] if "test_C" in data else data["test_C_us"]
+    D_test = data["test_D"] if "test_D" in data else data["test_D_us"]
+    T_test = data["test_T"] if "test_T" in data else data["test_T_us"]
+    U_test = data["test_U"] if "test_U" in data else data["test_util"]
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model = JointSchedulabilityMLP(n=n).to(device)
