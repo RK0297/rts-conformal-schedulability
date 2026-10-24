@@ -1,0 +1,2 @@
+tag,n,sets,schedulable,phat_acc_pct,phat_fpr_pct,cert_accept_pct,cert_FP,rej_recurrence_only,rej_deadline_only,rej_both,median_failing_tasks,median_shortfall_us,median_rel_shortfall_pct,ig_mean_hp_mass,ig_mean_lift,ig_completeness_err_pct
+bosch_n15,15,450,292,74.8888888888889,51.26582278481012,4.4520547945205475,0,110,121,48,9.0,106.0,12.210487871686398,0.5507476500102452,-0.017143556399223134,0.5094426870346069

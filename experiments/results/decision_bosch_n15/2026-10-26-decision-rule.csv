@@ -1,0 +1,4 @@
+p_hat range,decision,meaning
+p_hat < 0.4790,UNSCHEDULABLE,only 'unschedulable' is plausible
+0.4790 <= p_hat <= 0.8219,UNCERTAIN,both labels plausible
+p_hat > 0.8219,SCHEDULABLE,only 'schedulable' is plausible

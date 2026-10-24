@@ -1,0 +1,16 @@
+layer,type,in,out,weights,biases
+reg_net.0,Linear  z = W x + b,45,128,5760,128
+reg_net.1,ReLU (squashing step),,,0,0
+reg_net.2,Linear  z = W x + b,128,64,8192,64
+reg_net.3,ReLU (squashing step),,,0,0
+reg_net.4,Linear  z = W x + b,64,64,4096,64
+reg_net.5,ReLU (squashing step),,,0,0
+reg_net.6,Linear  z = W x + b,64,14,896,14
+clf_net.0,Linear  z = W x + b,60,128,7680,128
+clf_net.1,ReLU (squashing step),,,0,0
+clf_net.2,Linear  z = W x + b,128,64,8192,64
+clf_net.3,ReLU (squashing step),,,0,0
+clf_net.4,Linear  z = W x + b,64,64,4096,64
+clf_net.5,ReLU (squashing step),,,0,0
+clf_net.6,Linear  z = W x + b,64,1,64,1
+clf_net.7,Sigmoid (squashing step),,,0,0

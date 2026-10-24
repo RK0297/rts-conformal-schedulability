@@ -1,0 +1,2 @@
+alpha,mode,q0,q1,uncertain_pct,SCHEDULABLE_but_truly_unschedulable,SCHEDULABLE_and_certificate_PASS,accepted_but_truly_unschedulable,truly_schedulable_accepted_pct
+0.1,per-class,0.8219296336174011,0.521014928817749,38.0,17,12,0,4.10958904109589
