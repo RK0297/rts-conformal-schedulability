@@ -15,11 +15,16 @@ from pathlib import Path
 from typing import Dict, List, Optional
 import numpy as np
 
+if __package__ in (None, ""):
+    sys.path.append(str(Path(__file__).resolve().parent.parent))
+
 # Support direct execution and module execution
 try:
     from data.exact_rta import exact_rta
+    from verification.schedulability import edf_demand_bound_analysis, rate_monotonic_rta
 except ImportError:
     from exact_rta import exact_rta
+    from verification.schedulability import edf_demand_bound_analysis, rate_monotonic_rta
 
 
 def uunisort(n: int, target_u: float, rng: Optional[np.random.Generator] = None) -> np.ndarray:
@@ -123,6 +128,8 @@ def generate_taskset_collection(
     x_bin_arr = np.zeros((total_samples, 4 * n), dtype=np.float32)
     y_reg_arr = np.zeros((total_samples, n - 1), dtype=np.float32)
     y_bin_arr = np.zeros(total_samples, dtype=np.float32)
+    y_rm_arr = np.zeros(total_samples, dtype=np.float32)
+    y_edf_arr = np.zeros(total_samples, dtype=np.float32)
     c_arr = np.zeros((total_samples, n), dtype=np.int64)
     d_arr = np.zeros((total_samples, n), dtype=np.int64)
     t_arr = np.zeros((total_samples, n), dtype=np.int64)
@@ -139,6 +146,12 @@ def generate_taskset_collection(
             x_bin_arr[idx] = sample["x_bin"]
             y_reg_arr[idx] = sample["y_reg"]
             y_bin_arr[idx] = sample["y_bin"]
+            y_rm_arr[idx] = rate_monotonic_rta(
+                sample["C"], sample["D"], sample["T"]
+            )[0]
+            y_edf_arr[idx] = edf_demand_bound_analysis(
+                sample["C"], sample["D"], sample["T"]
+            )[0]
             c_arr[idx] = sample["C"]
             d_arr[idx] = sample["D"]
             t_arr[idx] = sample["T"]
@@ -151,6 +164,8 @@ def generate_taskset_collection(
         "X_bin": x_bin_arr,
         "Y_reg": y_reg_arr,
         "Y_bin": y_bin_arr,
+        "Y_rm": y_rm_arr,
+        "Y_edf": y_edf_arr,
         "C": c_arr,
         "D": d_arr,
         "T": t_arr,
@@ -185,6 +200,8 @@ def split_and_save(
         "train_X_bin": data["X_bin"][idx_train],
         "train_Y_reg": data["Y_reg"][idx_train],
         "train_Y_bin": data["Y_bin"][idx_train],
+        "train_Y_rm": data["Y_rm"][idx_train],
+        "train_Y_edf": data["Y_edf"][idx_train],
         "train_C": data["C"][idx_train],
         "train_D": data["D"][idx_train],
         "train_T": data["T"][idx_train],
@@ -194,6 +211,8 @@ def split_and_save(
         "calib_X_bin": data["X_bin"][idx_calib],
         "calib_Y_reg": data["Y_reg"][idx_calib],
         "calib_Y_bin": data["Y_bin"][idx_calib],
+        "calib_Y_rm": data["Y_rm"][idx_calib],
+        "calib_Y_edf": data["Y_edf"][idx_calib],
         "calib_C": data["C"][idx_calib],
         "calib_D": data["D"][idx_calib],
         "calib_T": data["T"][idx_calib],
@@ -203,6 +222,8 @@ def split_and_save(
         "test_X_bin": data["X_bin"][idx_test],
         "test_Y_reg": data["Y_reg"][idx_test],
         "test_Y_bin": data["Y_bin"][idx_test],
+        "test_Y_rm": data["Y_rm"][idx_test],
+        "test_Y_edf": data["Y_edf"][idx_test],
         "test_C": data["C"][idx_test],
         "test_D": data["D"][idx_test],
         "test_T": data["T"][idx_test],
