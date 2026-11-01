@@ -15,6 +15,16 @@ experiments/results/*.pth
 *.pt
 *.pth
 
+# Loose experiment outputs (summaries live in README.md)
+experiments/results/*.png
+experiments/results/*.csv
+experiments/results/*.md
+!experiments/results/*/*.csv
+!experiments/results/*/*.md
+
+# Pytest & test caches
+.pytest_cache/
+
 # Processed datasets (large binary files)
 data/processed/*.npz
 

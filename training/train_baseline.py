@@ -5,6 +5,7 @@ from typing import Optional, Tuple
 import numpy as np
 import torch
 import torch.nn as nn
+import copy
 from torch.utils.data import TensorDataset, DataLoader
 
 try:
@@ -23,6 +24,7 @@ def get_device() -> torch.device:
 
 def train_joint(
     data_npz: str,
+    label: str = "dm",
     epochs: int = 100,
     batch_size: int = 256,
     lr: float = 0.001,
@@ -39,7 +41,13 @@ def train_joint(
     X_reg = data["train_X_reg"].copy().astype(np.float32)
     X_clf = data["train_X_bin"].copy().astype(np.float32)
     Y_reg = data["train_Y_reg"].copy().astype(np.float32)
-    Y_clf = data["train_Y_bin"].copy().astype(np.float32)
+    label_key = {"dm": "train_Y_bin", "rm": "train_Y_rm", "edf": "train_Y_edf"}[label]
+    if label_key not in data:
+        raise KeyError(
+            f"Dataset does not contain {label_key}. Regenerate it with the updated "
+            "data generator or CSV converter."
+        )
+    Y_clf = data[label_key].copy().astype(np.float32)
 
     # 1. Simple strong scaling: divide C, T, D by 1000.0
     X_reg[:, 0::3] /= 1000.0  # C
@@ -113,7 +121,7 @@ def train_joint(
 
         if val_loss < best_loss:
             best_loss = val_loss
-            best_weights = model.state_dict().copy()
+            best_weights = copy.deepcopy(model.state_dict())
             no_improve = 0
         else:
             no_improve += 1
@@ -140,6 +148,7 @@ def main():
     parser = argparse.ArgumentParser(description="Train baseline schedulability model.")
     parser.add_argument("--data", type=str, required=True, help="Path to .npz dataset")
     parser.add_argument("--model_type", type=str, choices=["reg", "joint"], default="joint")
+    parser.add_argument("--label", choices=["dm", "rm", "edf"], default="dm")
     parser.add_argument("--epochs", type=int, default=100)
     parser.add_argument("--batch_size", type=int, default=256)
     parser.add_argument("--lr", type=float, default=0.001)
@@ -149,6 +158,7 @@ def main():
     args = parser.parse_args()
     train_joint(
         data_npz=args.data,
+        label=args.label,
         epochs=args.epochs,
         batch_size=args.batch_size,
         lr=args.lr,
